@@ -86,10 +86,12 @@ describe('Lorena Substrate Tests', function () {
     subModule.setKeyring('Alice')
     subModule.connect().then(() => {
       subModule.registerDid(did, pubKey, () => {
+        // this happens second (¿⸘¡qué!‽?)
         console.log('Not done!!!!!')
-      }).then((did) => {
-        console.log('DID, pubKey:', did, pubKey)
         done()
+      }).then((did) => {
+        // this happens first
+        console.log('DID, pubKey:', did, pubKey)
       })
     })
   })

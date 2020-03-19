@@ -40,11 +40,11 @@
   },
   "scripts": {
     "start": "node src/index.js",
-    "coverage": "nyc mocha test --timeout 20000 && nyc report --reporter=html",
-    "coveralls": "nyc mocha test --timeout 20000 && nyc report --reporter=text-lcov | coveralls",
+    "coverage": "nyc mocha test --timeout 50000 && nyc report --reporter=html",
+    "coveralls": "nyc mocha test --timeout 50000 && nyc report --reporter=text-lcov | coveralls",
     "lint": "eslint ./src --fix",
     "npm:publish": "npm publish --access public",
-    "test": "./node_modules/.bin/mocha --reporter spec"
+    "test": "./node_modules/.bin/mocha --timeout 50000 --reporter spec"
   },
   "husky": {
     "hooks": {

@@ -3,7 +3,7 @@
 const { ApiPromise, WsProvider, Keyring } = require('@polkadot/api')
 const { TypeRegistry } = require('@polkadot/types')
 const { Vec } = require('@polkadot/types/codec')
-const Utils = require('../utils/utils')
+const Utils = require('./utils/utils')
 const { cryptoWaitReady } = require('@polkadot/util-crypto')
 
 // Logger

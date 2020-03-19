@@ -8,7 +8,7 @@ chai.should()
 const expect = chai.expect
 
 require('dotenv').config()
-const LorenaSubstrate = require('../src/lorena-substrate.js')
+const LorenaSubstrate = require('../src/index.js')
 const Utils = require('../src/utils/utils')
 const Zen = require('@caelum-tech/zenroom-lib')
 const z = new Zen('sha256')
@@ -41,7 +41,7 @@ const subscribe2Events = (api) => {
       console.log(`[${Date.now()}] ${events.length}`)
 
       events.forEach(record => {
-        const { event, phase } = record
+        const { event /*, phase */ } = record
         const types = event.typeDef
 
         console.log(`[${Date.now()}] ${event.section} ${event.method}`)
@@ -57,16 +57,16 @@ const subscribe2Events = (api) => {
             }
           }
         }
-      });
-    });
-  });
+      })
+    })
+  })
 }
 
 describe('Lorena Substrate Tests', function () {
   const subModule = new LorenaSubstrate()
   let did, pubKey
 
-  before('Lorena Substrate Test Preparation', async() => {
+  before('Lorena Substrate Test Preparation', async () => {
     const didString = Utils.makeUniqueString(16)
     did = await generateDid(didString)
     pubKey = await generatePublicKey(did)
@@ -75,7 +75,7 @@ describe('Lorena Substrate Tests', function () {
   it('Generate a DID and publicKey', async () => {
     const didGenTest = await generateDid('caelumlabs')
     const pubKeyGenTest = await generatePublicKey(didGenTest)
-    console.log('didGen: ' + didGenTest + ' pubkey: ' + pubKeyGenTest)
+    console.log('didGen: ' + didGenTest + ' pubKey: ' + pubKeyGenTest)
     expect(didGenTest).equal(caelumHashedDid)
   })
 
@@ -86,7 +86,7 @@ describe('Lorena Substrate Tests', function () {
       subModule.registerDid(did, pubKey, () => {
         console.log('Not done!!!!!')
       }).then((did) => {
-        console.log('DIDDDD', did, pubKey)
+        console.log('DID, pubKey:', did, pubKey)
         done()
       })
     })

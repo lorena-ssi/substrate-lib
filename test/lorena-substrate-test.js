@@ -13,6 +13,8 @@ const Utils = require('../src/utils/utils')
 const Zen = require('@caelum-tech/zenroom-lib')
 const z = new Zen('sha256')
 
+require('dotenv').config()
+
 // 'caelumlabs' SHA256 hash
 const caelumHashedDid = '42dd5715a308829e'
 

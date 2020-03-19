@@ -16,7 +16,7 @@ const registry = new TypeRegistry()
  */
 module.exports = class Blockchain {
   constructor () {
-    this.providerWS = process.env.SERVER_SUBSTRATE || 'ws://localhost'
+    this.providerWS = process.env.SERVER_SUBSTRATE || 'wss://substrate-demo.caelumlabs.com/'
     this.api = false
     this.keypair = {}
     this.units = 1000000000

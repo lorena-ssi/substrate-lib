@@ -1,0 +1,54 @@
+{
+  "name": "@lorena-ssi/substrate-lib",
+  "version": "1.0.0",
+  "main": "src/lorena-substrate.js",
+  "author": "Alex Puig",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lorena-ssi/substrate-lib.git"
+  },
+  "dependencies": {
+    "@babel/core": "^7.8.7",
+    "dotenv": "^8.2.0",
+    "@polkadot/api": "^1.6.0-beta.24",
+    "@polkadot/api-contract": "^1.6.0-beta.24",
+    "@polkadot/keyring": "^2.6.2",
+    "@polkadot/types": "^1.6.0-beta.24",
+    "@polkadot/ui-keyring": "^0.51.1",
+    "@polkadot/ui-settings": "^0.51.1",
+    "@polkadot/util": "^2.6.1",
+    "@polkadot/util-crypto": "^2.6.2"
+  },
+  "devDependencies": {
+    "@caelum-tech/zenroom-lib": "^1.3.2",
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "coveralls": "^3.0.9",
+    "eslint": "^6.8.0",
+    "eslint-config-standard": "^14.1.0",
+    "eslint-plugin-chai-friendly": "^0.5.0",
+    "eslint-plugin-import": "^2.20.1",
+    "eslint-plugin-jsdoc": "^18.4.3",
+    "eslint-plugin-node": "^11.0.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1",
+    "husky": "^3.1.0",
+    "mocha": "^6.2.2",
+    "mocha-lcov-reporter": "^1.3.0",
+    "nyc": "^14.1.1"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "coverage": "nyc mocha test --timeout 20000 && nyc report --reporter=html",
+    "coveralls": "nyc mocha test --timeout 20000 && nyc report --reporter=text-lcov | coveralls",
+    "lint": "eslint ./src --fix",
+    "npm:publish": "npm publish --access public",
+    "test": "./node_modules/.bin/mocha --reporter spec"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run lint"
+    }
+  }
+}

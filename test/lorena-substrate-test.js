@@ -10,7 +10,7 @@ const expect = chai.expect
 require('dotenv').config()
 const LorenaSubstrate = require('../src/index.js')
 const Utils = require('../src/utils/utils')
-const Zen = require('@caelum-tech/zenroom-lib')
+const Zen = require('@lorena-ssi/zenroom-lib')
 const z = new Zen('sha256')
 
 require('dotenv').config()

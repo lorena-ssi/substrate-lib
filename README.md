@@ -21,3 +21,11 @@ const Substrate = require('@lorena-ssi/lorena-substrate')
 const substrate = new Blockchain()
 }
 ```
+
+## Environment variables
+
+In order to create a connection with a non-localhost blockchain an `.env` file must be created with the following variable definition:
+
+```env
+SERVER_SUBSTRATE=wss://your.own.substrate.com/
+```

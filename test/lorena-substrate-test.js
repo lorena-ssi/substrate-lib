@@ -9,11 +9,9 @@ const expect = chai.expect
 
 require('dotenv').config()
 const LorenaSubstrate = require('../src/index.js')
-const Utils = require('../src/utils/utils')
+const Utils = require('../src/utils')
 const Zen = require('@lorena-ssi/zenroom-lib')
 const z = new Zen('sha256')
-
-require('dotenv').config()
 
 // 'caelumlabs' SHA256 hash
 const caelumHashedDid = '42dd5715a308829e'
@@ -33,8 +31,9 @@ const generatePublicKey = async (did) => {
   return pubKey
 }
 
-const subscribe2Events = (api) => {
+const subscribe2RegisterEvents = (api, eventMethod) => {
   return new Promise(resolve => {
+    // let unsubscribe =
     api.query.system.events(events => {
       if (!events) {
         return resolve('no events')
@@ -46,14 +45,15 @@ const subscribe2Events = (api) => {
         const { event /*, phase */ } = record
         const types = event.typeDef
 
-        console.log(`[${Date.now()}] ${event.section} ${event.method}`)
+        // console.log(`[${Date.now()}] ${event.section} ${event.method}`)
 
-        if (event.section === 'lorenaModule' && event.method === 'DidRegistered') {
-          console.log('Received DidRegistered event!')
+        if (event.section === 'lorenaModule' && event.method === eventMethod) {
+          console.log('Received ' + eventMethod + ' event!')
           console.log(`[${Date.now()}] ${event.data.length}`)
           for (let i = 0; i < event.data.length; i++) {
             console.log(`[${Date.now()}] ${types[i].type}`)
-            if (types[i].type === 'Hash') {
+            if (types[i].type === 'Hash' || types[i].type === 'Bytes') {
+              // unsubscribe()
               console.log(`${types[i].type}: ${event.data[i]}`)
               return resolve(event.data[i].toString())
             }
@@ -65,7 +65,7 @@ const subscribe2Events = (api) => {
 }
 
 describe('Lorena Substrate Tests', function () {
-  const subModule = new LorenaSubstrate()
+  let subModule
   let did, pubKey
 
   before('Lorena Substrate Test Preparation', async () => {
@@ -77,28 +77,23 @@ describe('Lorena Substrate Tests', function () {
   it('Generate a DID and publicKey', async () => {
     const didGenTest = await generateDid('caelumlabs')
     const pubKeyGenTest = await generatePublicKey(didGenTest)
-    console.log('didGen: ' + didGenTest + ' pubKey: ' + pubKeyGenTest)
+    console.log('didGen: ' + didGenTest + ' pubkey: ' + pubKeyGenTest)
     expect(didGenTest).equal(caelumHashedDid)
   })
 
-  it('Register a DID', (done) => {
+  it('Register a DID', async () => {
     // SetKeyring and Connect are being called here because mocha Before function is not waiting fro Keyring WASM library load
+    subModule = new LorenaSubstrate('wss://substrate-demo.caelumlabs.com/')
+    await subModule.connect()
     subModule.setKeyring('Alice')
-    subModule.connect().then(() => {
-      subModule.registerDid(did, pubKey, () => {
-        // this happens second (¿⸘¡qué!‽?)
-        console.log('Not done!!!!!')
-        done()
-      }).then((did) => {
-        // this happens first
-        console.log('DID, pubKey:', did, pubKey)
-      })
-    })
+    await subModule.registerDid(did, pubKey)
   })
 
   it('Check DID registration', async () => {
-    const registeredDid = await subscribe2Events(subModule.api)
+    const registeredDid = await subscribe2RegisterEvents(subModule.api, 'DidRegistered')
     console.log('Registered DID:', registeredDid)
+    subModule.api.query.system.events()
+    console.log('Unsubscribed')
     const hexWithPadding = registeredDid.split('x')[1]
     const hex = hexWithPadding.substring(0, 16)
     // console.log('HEX', hex)
@@ -106,14 +101,12 @@ describe('Lorena Substrate Tests', function () {
     expect(hex).equal(did)
   })
 
-  it('GetKey from a DID', (done) => {
+  it('GetKey from a DID', async () => {
     subModule.getActualDidKey(did).then((key) => {
       console.log('Did: ' + did + ' Returned key@: ' + key)
-      const hex = key.split('x')[1]
       // console.log('HEX', hex)
-      console.log('UTF8', Buffer.from(hex, 'hex').toString('utf8'))
-      expect(Buffer.from(hex, 'hex').toString('utf8')).equal(pubKey)
-      done()
+      // console.log('UTF8', Buffer.from(hex, 'hex').toString('utf8'))
+      expect(key).equal(pubKey)
     })
   })
 
@@ -125,17 +118,16 @@ describe('Lorena Substrate Tests', function () {
   //   console.log('getDidDocHash - Query - Hash', result)
   // })
 
-  it('Rotate Key', (done) => {
-    // const newPubKey = await generatePublicKey(did)
-    subModule.rotateKey(did, pubKey).then(() => {
-      subModule.getActualDidKey(did).then((key) => {
-        // console.log('Did: ' + did + ' Returned key@: ' + key)
-        const hex = key.split('x')[1]
-        // console.log('HEX', hex)
-        console.log('UTF8', Buffer.from(hex, 'hex').toString('utf8'), '==?', pubKey)
-        expect(Buffer.from(hex, 'hex').toString('utf8')).equal(pubKey)
-        done()
-      })
-    })
+  it('Rotate Key', async () => {
+    const newPubKey = await generatePublicKey(did)
+    await subModule.rotateKey(did, newPubKey)
+    await subscribe2RegisterEvents(subModule.api, 'KeyRotated')
+    const key = await subModule.getActualDidKey(did)
+    console.log('Rotate Key test - Did:' + did + ' Old key:' + pubKey + ' New registered key:' + key)
+    expect(key).equal(newPubKey)
+  })
+
+  it('should clean up after itself', () => {
+    subModule.disconnect()
   })
 })

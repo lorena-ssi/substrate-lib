@@ -16,8 +16,8 @@ npm @lorena-ssi/substrate-lib
 TODO
 
 ```javascript
-const Substrate = require('@lorena-ssi/lorena-substrate')
+const Substrate = require('@lorena-ssi/substrate-lib')
 // Creating class Substrate with parameter `url`
-const substrate = new Blockchain()
+const substrate = new new LorenaSubstrate('wss://your.own.substrate.com/')
 }
 ```

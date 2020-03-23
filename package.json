@@ -1,7 +1,7 @@
 {
   "name": "@lorena-ssi/substrate-lib",
-  "version": "1.0.0",
-  "main": "src/lorena-substrate.js",
+  "version": "1.0.1",
+  "main": "src/index.js",
   "author": "Alex Puig",
   "license": "MIT",
   "repository": {

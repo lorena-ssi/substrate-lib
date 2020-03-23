@@ -16,16 +16,8 @@ npm @lorena-ssi/substrate-lib
 TODO
 
 ```javascript
-const Substrate = require('@lorena-ssi/lorena-substrate')
+const Substrate = require('@lorena-ssi/substrate-lib')
 // Creating class Substrate with parameter `url`
-const substrate = new Blockchain()
+const substrate = new new LorenaSubstrate('wss://your.own.substrate.com/')
 }
-```
-
-## Environment variables
-
-In order to create a connection with a non-localhost blockchain an `.env` file must be created with the following variable definition:
-
-```env
-SERVER_SUBSTRATE=wss://your.own.substrate.com/
 ```

@@ -16,8 +16,8 @@ const registry = new TypeRegistry()
  * Javascript Class to interact with the Blockchain.
  */
 module.exports = class Blockchain {
-  constructor () {
-    this.providerWS = process.env.SERVER_SUBSTRATE || 'ws://localhost'
+  constructor (providerWS) {
+    this.providerWS = providerWS
     this.api = false
     this.keypair = {}
     this.units = 1000000000

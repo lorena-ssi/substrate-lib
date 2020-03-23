@@ -83,7 +83,7 @@ describe('Lorena Substrate Tests', function () {
 
   it('Register a DID', async () => {
     // SetKeyring and Connect are being called here because mocha Before function is not waiting fro Keyring WASM library load
-    subModule = new LorenaSubstrate()
+    subModule = new LorenaSubstrate('wss://substrate-demo.caelumlabs.com/')
     await subModule.connect()
     subModule.setKeyring('Alice')
     await subModule.registerDid(did, pubKey)

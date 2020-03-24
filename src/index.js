@@ -52,19 +52,6 @@ module.exports = class Blockchain {
       this.api.rpc.system.version()
     ])
 
-    /* let kZpair = await z.newKeyPair('root')
-    console.log(kZpair)
-
-    const keyring = new Keyring({ type: 'sr25519' });
-    const newPair = keyring.addFromUri('//'+kZpair['root'].keypair.private_key);
-    //
-    const hexPair = keyring.addFromUri('0x80a0c8d8a5e27c75caa472fdcac6e24699a75144966d041f5909c4dc0e970b71');
-    console.log(newPair.address)
-
-    // Retrieve the account balance via the balances module
-    const balance = await this.api.query.balances.freeBalance(hexPair.address)
-    console.log("Balance "+balance) */
-
     debug(`Connected to chain ${chain} - ${nodeName} v${nodeVersion}`)
     return true
   }
@@ -136,9 +123,8 @@ module.exports = class Blockchain {
    */
   async getActualDidKey (did) {
     const hashedDID = Utils.hashCode(did)
-    const identity = await this.api.query.lorenaModule.identities(hashedDID)
-    const index = await this.api.query.lorenaModule.identityKeysIndex(identity.owner)
-    const result = await this.api.query.lorenaModule.identityKeys([identity.owner, index])
+    const index = await this.api.query.lorenaModule.identityKeysIndex(hashedDID)
+    const result = await this.api.query.lorenaModule.identityKeys([hashedDID, index])
 
     let key = result.key.toString()
     key = key.split('x')[1]

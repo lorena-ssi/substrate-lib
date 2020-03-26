@@ -79,6 +79,7 @@ module.exports = class Blockchain {
 
   /**
    * Returns the Key for a DID.
+   *
    * @param {string} did DID
    */
   async getKey (did) {
@@ -105,6 +106,7 @@ module.exports = class Blockchain {
   /**
    * Transfer Tokens
    * TODO: Not working.
+   *
    * @param {string} to Address To
    * @param {*} total Ammount to send
    */
@@ -131,6 +133,7 @@ module.exports = class Blockchain {
 
   /**
    * Receives a 16 bytes DID string and extends it to 65 bytes Hash
+   *
    * @param {string} did DID
    * @param {string} pubKey Public Key to register into the DID
    */
@@ -149,6 +152,7 @@ module.exports = class Blockchain {
 
   /**
    * Returns the actual Key.
+   *
    * @param {string} did DID
    * @returns {string} The active key
    */
@@ -165,6 +169,7 @@ module.exports = class Blockchain {
 
   /**
    * Registers a Hash (of the DID document) for a DID
+   *
    * @param {string} did DID
    * @param {string} diddocHash Did document Hash
    */
@@ -177,6 +182,7 @@ module.exports = class Blockchain {
 
   /**
    * Retrieves the Hash of a Did Document for a DID
+   *
    * @param {string} did DID
    * @returns {string} the Hash
    */
@@ -190,6 +196,7 @@ module.exports = class Blockchain {
 
   /**
    * Rotate Key : chamges the actual key for a DID
+   *
    * @param {string} did DID
    * @param {string} pubKey Public Key to register into the DID
    */

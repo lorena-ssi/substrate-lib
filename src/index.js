@@ -108,7 +108,7 @@ module.exports = class Blockchain {
    * TODO: Not working.
    *
    * @param {string} to Address To
-   * @param {*} total Ammount to send
+   * @param {*} total Amount to send
    */
   async transfer (to, total) {
     return new Promise(async (resolve, reject) => {
@@ -195,7 +195,7 @@ module.exports = class Blockchain {
   }
 
   /**
-   * Rotate Key : chamges the actual key for a DID
+   * Rotate Key : changes the actual key for a DID
    *
    * @param {string} did DID
    * @param {string} pubKey Public Key to register into the DID

@@ -60,6 +60,10 @@ module.exports = class Blockchain {
     this.provider.disconnect()
   }
 
+  async balance () {
+    return await this.api.query.balances.freeBalance(this.keypair.address)
+  }
+
   async getKey (did) {
     return new Promise((resolve) => {
       this.api.query.lorenaModule.identities(did.toString()).then((identity) => {
@@ -73,11 +77,11 @@ module.exports = class Blockchain {
    * @param {string} seed Seed
    * @param {boolean} isSeed Seed ot URI
    */
-  setKeyring (seed, isSeed = false) {
+  setKeyring (seed) {
     const keyring = new Keyring({ type: 'sr25519' })
-    const uri = ((isSeed) ? '' : '//') + seed
-    this.keypair = keyring.addFromUri(uri)
+    this.keypair = keyring.addFromUri((seed === 'Alice') ? '//Alice' : seed)
     debug('Keyring added:' + this.keypair.address)
+    return this.keypair.address
   }
 
   async transfer (to, total) {

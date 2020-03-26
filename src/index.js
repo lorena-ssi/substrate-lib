@@ -10,15 +10,13 @@ const registry = new TypeRegistry()
 // Debug
 var debug = require('debug')('did:debug:sub')
 
-
 /**
  * Javascript Class to interact with the Blockchain.
  */
 module.exports = class Blockchain {
-
   /**
    * Constructor
-   * 
+   *
    * @param {string} server Web Sockets Provider
    */
   constructor (server = 'ws://127.0.0.1:9944/') {
@@ -81,7 +79,7 @@ module.exports = class Blockchain {
 
   /**
    * Returns the Key for a DID.
-   * @param {string} did 
+   * @param {string} did DID
    */
   async getKey (did) {
     return new Promise((resolve) => {
@@ -93,6 +91,7 @@ module.exports = class Blockchain {
 
   /**
    * Sets the Keyring
+   *
    * @param {string} seed Seed
    * @returns {string} Address
    */
@@ -134,7 +133,7 @@ module.exports = class Blockchain {
    * Receives a 16 bytes DID string and extends it to 65 bytes Hash
    * @param {string} did DID
    * @param {string} pubKey Public Key to register into the DID
-  */ 
+   */
   async registerDid (did, pubKey) {
     debug('Register did : ' + did)
     debug('Assign pubKey : ' + pubKey)
@@ -192,7 +191,7 @@ module.exports = class Blockchain {
   /**
    * Rotate Key : chamges the actual key for a DID
    * @param {string} did DID
-   * @param {string} diddocHash Did document Hash
+   * @param {string} pubKey Public Key to register into the DID
    */
   async rotateKey (did, pubKey) {
     // Convert did string to hashed did

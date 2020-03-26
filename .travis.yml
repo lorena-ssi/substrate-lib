@@ -3,6 +3,8 @@ node_js:
   - "12"
 install:
   - npm install
+env:
+  - SERVER_SUBSTRATE=wss://substrate-demo.caelumlabs.com/
 script:
   - npm run lint
   - npm test

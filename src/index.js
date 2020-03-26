@@ -1,21 +1,26 @@
 /* eslint-disable no-async-promise-executor */
 'use strict'
-
-// Debug
-var debug = require('debug')('did:debug:sub')
-
 const { ApiPromise, WsProvider, Keyring } = require('@polkadot/api')
 const { TypeRegistry } = require('@polkadot/types')
 const { Vec } = require('@polkadot/types/codec')
 const Utils = require('./utils')
 const { cryptoWaitReady } = require('@polkadot/util-crypto')
-
 const registry = new TypeRegistry()
+
+// Debug
+var debug = require('debug')('did:debug:sub')
+
 
 /**
  * Javascript Class to interact with the Blockchain.
  */
 module.exports = class Blockchain {
+
+  /**
+   * Constructor
+   * 
+   * @param {string} server Web Sockets Provider
+   */
   constructor (server = 'ws://127.0.0.1:9944/') {
     this.providerWS = server
     this.api = false
@@ -23,6 +28,9 @@ module.exports = class Blockchain {
     this.units = 1000000000
   }
 
+  /**
+   * Connect with the Blockchain.
+   */
   async connect () {
     debug('connecting to ' + this.providerWS)
 
@@ -56,14 +64,25 @@ module.exports = class Blockchain {
     return true
   }
 
+  /**
+   * Disconnect from Blockchain.
+   */
   disconnect () {
     this.provider.disconnect()
   }
 
+  /**
+   * Balance fot the address.
+   * TODO: Not working.
+   */
   async balance () {
     return await this.api.query.balances.freeBalance(this.keypair.address)
   }
 
+  /**
+   * Returns the Key for a DID.
+   * @param {string} did 
+   */
   async getKey (did) {
     return new Promise((resolve) => {
       this.api.query.lorenaModule.identities(did.toString()).then((identity) => {
@@ -73,9 +92,9 @@ module.exports = class Blockchain {
   }
 
   /**
-   *
+   * Sets the Keyring
    * @param {string} seed Seed
-   * @param {boolean} isSeed Seed ot URI
+   * @returns {string} Address
    */
   setKeyring (seed) {
     const keyring = new Keyring({ type: 'sr25519' })
@@ -84,6 +103,12 @@ module.exports = class Blockchain {
     return this.keypair.address
   }
 
+  /**
+   * Transfer Tokens
+   * TODO: Not working.
+   * @param {string} to Address To
+   * @param {*} total Ammount to send
+   */
   async transfer (to, total) {
     return new Promise(async (resolve, reject) => {
       const ADDR = to
@@ -105,8 +130,12 @@ module.exports = class Blockchain {
     })
   }
 
-  //  Receives a 16 bytes DID string and extends it to 65 bytes Hash
-  async registerDid (did, pubKey, cb) {
+  /**
+   * Receives a 16 bytes DID string and extends it to 65 bytes Hash
+   * @param {string} did DID
+   * @param {string} pubKey Public Key to register into the DID
+  */ 
+  async registerDid (did, pubKey) {
     debug('Register did : ' + did)
     debug('Assign pubKey : ' + pubKey)
     // Convert did string to hashed did
@@ -121,7 +150,6 @@ module.exports = class Blockchain {
 
   /**
    * Returns the actual Key.
-   *
    * @param {string} did DID
    * @returns {string} The active key
    */
@@ -136,6 +164,11 @@ module.exports = class Blockchain {
     return key
   }
 
+  /**
+   * Registers a Hash (of the DID document) for a DID
+   * @param {string} did DID
+   * @param {string} diddocHash Did document Hash
+   */
   async registerDidDocument (did, diddocHash) {
     const hashedDID = Utils.hashCode(did)
     const docHash = Utils.hashCode(diddocHash)
@@ -143,6 +176,11 @@ module.exports = class Blockchain {
     await transaction.signAndSend(this.keypair)
   }
 
+  /**
+   * Retrieves the Hash of a Did Document for a DID
+   * @param {string} did DID
+   * @returns {string} the Hash
+   */
   async getDidDocHash (did) {
     const hashedDID = Utils.hashCode(did)
     const identity = await this.api.query.lorenaModule.identities(hashedDID)
@@ -151,6 +189,11 @@ module.exports = class Blockchain {
     return key.diddoc_hash.toString()
   }
 
+  /**
+   * Rotate Key : chamges the actual key for a DID
+   * @param {string} did DID
+   * @param {string} diddocHash Did document Hash
+   */
   async rotateKey (did, pubKey) {
     // Convert did string to hashed did
     const hashedDID = Utils.hashCode(did)

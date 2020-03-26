@@ -77,12 +77,12 @@ describe('Lorena Substrate Tests', function () {
   it('Generate a DID and publicKey', async () => {
     const didGenTest = await generateDid('caelumlabs')
     const pubKeyGenTest = await generatePublicKey(didGenTest)
-    console.log('didGen: ' + didGenTest + ' pubkey: ' + pubKeyGenTest)
+    console.log('didGen: ' + didGenTest + ' pubKey: ' + pubKeyGenTest)
     expect(didGenTest).equal(caelumHashedDid)
   })
 
   it('Register a DID', async () => {
-    // SetKeyring and Connect are being called here because mocha Before function is not waiting fro Keyring WASM library load
+    // SetKeyring and Connect are being called here because mocha Before function is not waiting for Keyring WASM library load
     subModule = new LorenaSubstrate('wss://substrate-demo.caelumlabs.com/')
     await subModule.connect()
     subModule.setKeyring('Alice')

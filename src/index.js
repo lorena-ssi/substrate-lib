@@ -15,9 +15,9 @@ const registry = new TypeRegistry()
 /**
  * Javascript Class to interact with the Blockchain.
  */
-module.exports = class Blockchain {
-  constructor (server = 'ws://127.0.0.1:9944/') {
-    this.providerWS = server
+module.exports = class LorenaSubstrate {
+  constructor () {
+    this.providerWS = process.env.SERVER_SUBSTRATE || 'ws://localhost'
     this.api = false
     this.keypair = {}
     this.units = 1000000000
@@ -82,14 +82,13 @@ module.exports = class Blockchain {
   }
 
   /**
+   * Set the Keyring.
    *
    * @param {string} seed Seed
-   * @param {boolean} isSeed Seed ot URI
    */
-  setKeyring (seed, isSeed = false) {
+  setKeyring (seed) {
     const keyring = new Keyring({ type: 'sr25519' })
-    const uri = ((isSeed) ? '' : '//') + seed
-    this.keypair = keyring.addFromUri(uri)
+    this.keypair = keyring.addFromUri((seed === 'Alice') ? '//Alice' : seed)
     debug('Keyring added:' + this.keypair.address)
   }
 
@@ -136,9 +135,8 @@ module.exports = class Blockchain {
    */
   async getActualDidKey (did) {
     const hashedDID = Utils.hashCode(did)
-    const identity = await this.api.query.lorenaModule.identities(hashedDID)
-    const index = await this.api.query.lorenaModule.identityKeysIndex(identity.owner)
-    const result = await this.api.query.lorenaModule.identityKeys([identity.owner, index])
+    const index = await this.api.query.lorenaModule.identityKeysIndex(hashedDID)
+    const result = await this.api.query.lorenaModule.identityKeys([hashedDID, index])
 
     let key = result.key.toString()
     key = key.split('x')[1]

@@ -21,7 +21,7 @@
     "dotenv": "^8.2.0"
   },
   "devDependencies": {
-    "@lorena-ssi/zenroom-lib": "^1.4.6",
+    "@lorena-ssi/zenroom-lib": "^1.4.7",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "coveralls": "^3.0.9",

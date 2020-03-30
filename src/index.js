@@ -1,5 +1,6 @@
 /* eslint-disable no-async-promise-executor */
 'use strict'
+const BlockchainInterface = require('@lorena-ssi/blockchain-lib')
 const { ApiPromise, WsProvider, Keyring } = require('@polkadot/api')
 const { TypeRegistry } = require('@polkadot/types')
 const { Vec } = require('@polkadot/types/codec')
@@ -13,13 +14,14 @@ var debug = require('debug')('did:debug:sub')
 /**
  * Javascript Class to interact with the Blockchain.
  */
-module.exports = class Blockchain {
+module.exports = class SubstrateLib extends BlockchainInterface {
   /**
    * Constructor
    *
    * @param {string} server Web Sockets Provider
    */
   constructor (server = 'ws://127.0.0.1:9944/') {
+    super()
     this.providerWS = server
     this.api = false
     this.keypair = {}
@@ -195,11 +197,7 @@ module.exports = class Blockchain {
   }
 
   /**
-<<<<<<< HEAD
-   * Rotate Key : chamges the actual key for a DID
-=======
    * Rotate Key : changes the actual key for a DID
->>>>>>> 464b6944fb103817c6ed339793b699dd6c8d5d0c
    *
    * @param {string} did DID
    * @param {string} pubKey Public Key to register into the DID

@@ -42,7 +42,8 @@
     "start": "node src/index.js",
     "coverage": "nyc mocha test --timeout 50000 && nyc report --reporter=html",
     "coveralls": "nyc mocha test --timeout 50000 && nyc report --reporter=text-lcov | coveralls",
-    "lint": "eslint ./src --fix",
+    "lint-fix": "eslint ./src --fix",
+    "lint": "eslint ./src",
     "npm:publish": "npm publish --access public",
     "test": "./node_modules/.bin/mocha --timeout 50000 --reporter spec"
   },

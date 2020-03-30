@@ -5,8 +5,6 @@ chai.use(chaiAsPromised)
 chai.should()
 const expect = chai.expect
 
-const {Keyring } = require('@polkadot/api')
-
 require('dotenv').config()
 const LorenaSubstrate = require('../src/index.js')
 const Zen = require('@lorena-ssi/zenroom-lib')
@@ -41,13 +39,12 @@ describe('Lorena Substrate Tests', function () {
     did = await zenroom.randomDID()
     kZpair = await await zenroom.newKeyPair(did)
     pubKey = kZpair[did].keypair.public_key
-    substrate = new LorenaSubstrate('wss://substrate-demo.caelumlabs.com/')
-    // substrate = new LorenaSubstrate('wss://livinglabs-testnet.caelumlabs.com/')
+    substrate = new LorenaSubstrate(process.env.SERVER_SUBSTRATE)
     await substrate.connect()
   })
 
   it('Open a Seed', async () => {
-    let addr = substrate.setKeyring('subject grief save master kangaroo core ocean brick artwork admit main angle')
+    const addr = substrate.setKeyring('subject grief save master kangaroo core ocean brick artwork admit main angle')
     expect(addr).equal('5HU145mGtqoAuVbporePWDVA4oaVyvRwaQcapJ3oaJGiRuC4')
   })
 

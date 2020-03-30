@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@babel/core": "^7.9.0",
+    "@lorena-ssi/blockchain-lib": "^1.0.0",
     "@polkadot/api": "^1.8.1",
     "@polkadot/api-contract": "^1.8.1",
     "@polkadot/keyring": "^2.6.2",
@@ -17,14 +18,14 @@
     "@polkadot/ui-keyring": "^0.51.1",
     "@polkadot/ui-settings": "^0.51.1",
     "@polkadot/util": "^2.6.1",
-    "@polkadot/util-crypto": "^2.6.2",
-    "dotenv": "^8.2.0"
+    "@polkadot/util-crypto": "^2.6.2"
   },
   "devDependencies": {
     "@lorena-ssi/zenroom-lib": "^1.4.7",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "coveralls": "^3.0.9",
+    "dotenv": "^8.2.0",
     "eslint": "^6.8.0",
     "eslint-config-standard": "^14.1.1",
     "eslint-plugin-chai-friendly": "^0.5.0",

@@ -56,10 +56,21 @@ describe('Lorena Substrate Tests', function () {
 
   it('Check DID registration', async () => {
     const registeredDid = await subscribe2RegisterEvents(substrate.api, 'DidRegistered')
-    substrate.api.query.system.events()
+    const events = await substrate.api.query.system.events()
+    console.log(events)
     const hexWithPadding = registeredDid.split('x')[1]
     const hex = hexWithPadding.substring(0, 16)
     // expect(hex).equal(did)
+  })
+
+  it('Register a Did Document', async () => {
+    const diddocHash = 'AQwafuaFswefuhsfAFAgsw'
+    await substrate.registerDidDocument(did, diddocHash)
+    const registeredDidDocument = await subscribe2RegisterEvents(substrate.api, 'DidDocumentRegistered')
+    const events = await substrate.api.query.system.events()
+    console.log(events)
+    console.log(registeredDidDocument)
+    // expect(registeredDidDocument).to.eq(diddocHash)
   })
 
   it('GetKey from a DID', async () => {

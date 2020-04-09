@@ -11,6 +11,16 @@ class Utils {
     return result
   }
 
+  static stringToHash (str) {
+    var hex; var result = ''
+    for (var i = 0; i < str.length; i++) {
+      hex = str.charCodeAt(i).toString(16)
+      result = result + hex.toString()
+    }
+
+    return result
+  }
+
   static toUTF8Array (str) {
     var utf8 = []
     for (var i = 0; i < str.length; i++) {

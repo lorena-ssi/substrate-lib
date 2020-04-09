@@ -1,36 +1,28 @@
 /* eslint-disable no-async-promise-executor */
 'use strict'
-const BlockchainInterface = require('@lorena-ssi/blockchain-lib')
+
+// Debug
+var debug = require('debug')('did:debug:sub')
+
 const { ApiPromise, WsProvider, Keyring } = require('@polkadot/api')
 const { TypeRegistry } = require('@polkadot/types')
 const { Vec } = require('@polkadot/types/codec')
 const Utils = require('./utils')
 const { cryptoWaitReady } = require('@polkadot/util-crypto')
-const registry = new TypeRegistry()
 
-// Debug
-var debug = require('debug')('did:debug:sub')
+const registry = new TypeRegistry()
 
 /**
  * Javascript Class to interact with the Blockchain.
  */
-module.exports = class SubstrateLib extends BlockchainInterface {
-  /**
-   * Constructor
-   *
-   * @param {string} server Web Sockets Provider
-   */
+module.exports = class Blockchain {
   constructor (server = 'ws://127.0.0.1:9944/') {
-    super()
     this.providerWS = server
     this.api = false
     this.keypair = {}
     this.units = 1000000000
   }
 
-  /**
-   * Connect with the Blockchain.
-   */
   async connect () {
     debug('connecting to ' + this.providerWS)
 
@@ -45,7 +37,7 @@ module.exports = class SubstrateLib extends BlockchainInterface {
         },
         Key: {
           key: 'Vec<u8>',
-          diddoc_hash: 'Hash',
+          diddoc: 'Vec<u8>',
           valid_from: 'u64',
           valid_to: 'u64'
         }
@@ -60,30 +52,27 @@ module.exports = class SubstrateLib extends BlockchainInterface {
       this.api.rpc.system.version()
     ])
 
+    /* let kZpair = await z.newKeyPair('root')
+    console.log(kZpair)
+
+    const keyring = new Keyring({ type: 'sr25519' });
+    const newPair = keyring.addFromUri('//'+kZpair['root'].keypair.private_key);
+    //
+    const hexPair = keyring.addFromUri('0x80a0c8d8a5e27c75caa472fdcac6e24699a75144966d041f5909c4dc0e970b71');
+    console.log(newPair.address)
+
+    // Retrieve the account balance via the balances module
+    const balance = await this.api.query.balances.freeBalance(hexPair.address)
+    console.log("Balance "+balance) */
+
     debug(`Connected to chain ${chain} - ${nodeName} v${nodeVersion}`)
     return true
   }
 
-  /**
-   * Disconnect from Blockchain.
-   */
   disconnect () {
     this.provider.disconnect()
   }
 
-  /**
-   * Balance fot the address.
-   * TODO: Not working.
-   */
-  async balance () {
-    return await this.api.query.balances.freeBalance(this.keypair.address)
-  }
-
-  /**
-   * Returns the Key for a DID.
-   *
-   * @param {string} did DID
-   */
   async getKey (did) {
     return new Promise((resolve) => {
       this.api.query.lorenaModule.identities(did.toString()).then((identity) => {
@@ -93,25 +82,17 @@ module.exports = class SubstrateLib extends BlockchainInterface {
   }
 
   /**
-   * Sets the Keyring
    *
    * @param {string} seed Seed
-   * @returns {string} Address
+   * @param {boolean} isSeed Seed ot URI
    */
-  setKeyring (seed) {
+  setKeyring (seed, isSeed = false) {
     const keyring = new Keyring({ type: 'sr25519' })
-    this.keypair = keyring.addFromUri((seed === 'Alice') ? '//Alice' : seed)
+    const uri = ((isSeed) ? '' : '//') + seed
+    this.keypair = keyring.addFromUri(uri)
     debug('Keyring added:' + this.keypair.address)
-    return this.keypair.address
   }
 
-  /**
-   * Transfer Tokens
-   * TODO: Not working.
-   *
-   * @param {string} to Address To
-   * @param {*} total Amount to send
-   */
   async transfer (to, total) {
     return new Promise(async (resolve, reject) => {
       const ADDR = to
@@ -134,20 +115,26 @@ module.exports = class SubstrateLib extends BlockchainInterface {
   }
 
   /**
-   * Receives a 16 bytes DID string and extends it to 65 bytes Hash
+   * Registers Did in Substrate .
    *
    * @param {string} did DID
-   * @param {string} pubKey Public Key to register into the DID
+   * @param {string} pubKey Zenroom Public Key
+   *
+   * Example:
+   *    registerDid ('E348FEE8328', 'ZenroomValidPublicKey')
    */
   async registerDid (did, pubKey) {
-    debug('Register did : ' + did)
-    debug('Assign pubKey : ' + pubKey)
-    // Convert did string to hashed did
-    const hashedDID = Utils.hashCode(did)
-
+    // Convert did string to hashed did, using Zenroom.Hash
+    const hashedDID = Utils.stringToHash(did)
     // Convert pubKey to vec[u8]
     const arr = Utils.toUTF8Array(pubKey)
     const zkey = new Vec(registry, 'u8', arr)
+
+    debug('Register did : ' + did)
+    debug('Assign pubKey : ' + pubKey)
+    debug('Register hashedDID : ' + hashedDID)
+    debug('Assign zkey : ' + zkey)
+
     const transaction = await this.api.tx.lorenaModule.registerDid(hashedDID, zkey)
     await transaction.signAndSend(this.keypair)
   }
@@ -159,35 +146,24 @@ module.exports = class SubstrateLib extends BlockchainInterface {
    * @returns {string} The active key
    */
   async getActualDidKey (did) {
-    const hashedDID = Utils.hashCode(did)
-    const index = await this.api.query.lorenaModule.identityKeysIndex(hashedDID)
-    const result = await this.api.query.lorenaModule.identityKeys([hashedDID, index])
+    const hashedDID = Utils.stringToHash(did)
+    const identity = await this.api.query.lorenaModule.identities(hashedDID)
 
-    let key = result.key.toString()
-    key = key.split('x')[1]
-    key = Buffer.from(key, 'hex').toString('utf8')
-    return key
+    const result = await this.api.query.lorenaModule.identityKeys([hashedDID, identity.key_index.toString()])
+
+    // let key = result.key.toString()
+    // key = key.split('x')[1]
+    // key = Buffer.from(key, 'hex').toString('utf8')
+    return JSON.parse(result.toString())
   }
 
-  /**
-   * Registers a Hash (of the DID document) for a DID
-   *
-   * @param {string} did DID
-   * @param {string} diddocHash Did document Hash
-   */
   async registerDidDocument (did, diddocHash) {
     const hashedDID = Utils.hashCode(did)
-    const docHash = Utils.hashCode(diddocHash)
+    const docHash = Utils.toUTF8Array(diddocHash)
     const transaction = await this.api.tx.lorenaModule.registerDidDocument(hashedDID, docHash)
     await transaction.signAndSend(this.keypair)
   }
 
-  /**
-   * Retrieves the Hash of a Did Document for a DID
-   *
-   * @param {string} did DID
-   * @returns {string} the Hash
-   */
   async getDidDocHash (did) {
     const hashedDID = Utils.hashCode(did)
     const identity = await this.api.query.lorenaModule.identities(hashedDID)
@@ -196,12 +172,6 @@ module.exports = class SubstrateLib extends BlockchainInterface {
     return key.diddoc_hash.toString()
   }
 
-  /**
-   * Rotate Key : changes the actual key for a DID
-   *
-   * @param {string} did DID
-   * @param {string} pubKey Public Key to register into the DID
-   */
   async rotateKey (did, pubKey) {
     // Convert did string to hashed did
     const hashedDID = Utils.hashCode(did)

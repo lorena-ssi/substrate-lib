@@ -45,14 +45,13 @@ describe('Lorena Substrate Tests', function () {
 
   before('Lorena Substrate Test Preparation', async () => {
     did = await zenroom.randomDID()
-    console.log("DID de zenroom", did)
     kZpair = await zenroom.newKeyPair(did)
     pubKey = kZpair[did].keypair.public_key
     substrate = new LorenaSubstrate(process.env.SERVER_SUBSTRATE)
     await substrate.connect()
   })
 
-  xit('Open a Seed', async () => {
+  it('Open a Seed', async () => {
     const addr = substrate.setKeyring('subject grief save master kangaroo core ocean brick artwork admit main angle')
     expect(addr).equal('5HU145mGtqoAuVbporePWDVA4oaVyvRwaQcapJ3oaJGiRuC4')
   })
@@ -91,23 +90,23 @@ describe('Lorena Substrate Tests', function () {
     expect(key['valid_to']).equal(0)
   })
 
-  xit('Register a Did Document', async () => {
+  it('Register a Did Document', async () => {
     const diddocHash = 'AQwafuaFswefuhsfAFAgsw'
     await substrate.registerDidDocument(did, diddocHash)
     const registeredDidDocument = await subscribe2RegisterEvents(substrate.api, 'DidDocumentRegistered')
-    // const events = await substrate.api.query.system.events()
+    const events = await substrate.api.query.system.events()
     console.log(events)
     console.log(registeredDidDocument)
     // expect(registeredDidDocument).to.eq(diddocHash)
   })
 
-  xit('GetKey from a DID', async () => {
+  it('GetKey from a DID', async () => {
     substrate.getActualDidKey(did).then((key) => {
       expect(key).equal(pubKey)
     })
   })
 
-  xit('Rotate Key', async () => {
+  it('Rotate Key', async () => {
     const newKeyPair = await await zenroom.newKeyPair(did)
     const newPubKey = newKeyPair[did].keypair.public_key
     await substrate.rotateKey(did, newPubKey)
@@ -116,7 +115,7 @@ describe('Lorena Substrate Tests', function () {
     expect(key).equal(newPubKey)
   })
 
-  after('should clean up after itself', () => {
+  it('should clean up after itself', () => {
     substrate.disconnect()
   })
 })

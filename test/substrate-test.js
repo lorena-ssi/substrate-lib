@@ -4,22 +4,15 @@ var chaiAsPromised = require('chai-as-promised')
 chai.use(chaiAsPromised)
 chai.should()
 const expect = chai.expect
-
-const util = require('util')
-const sleep = util.promisify(setTimeout)
-
 require('dotenv').config()
 const Utils = require('../src/utils')
 const LorenaSubstrate = require('../src/index.js')
 const Zen = require('@lorena-ssi/zenroom-lib')
 const zenroom = new Zen(true)
 
-const filterEvents = (api, eventMethod) => {
+const subscribe2RegisterEvents = (api, eventMethod) => {
   return new Promise(resolve => {
     api.query.system.events(events => {
-      if (!events) {
-        return resolve('no events')
-      }
       events.forEach(record => {
         const { event /*, phase */ } = record
 
@@ -31,8 +24,8 @@ const filterEvents = (api, eventMethod) => {
             if (types[i].type === 'AccountId') {
               resolve(event.data.toString())
             }
-            resolve([])
           }
+          resolve([])
         }
       })
     })
@@ -42,6 +35,7 @@ const filterEvents = (api, eventMethod) => {
 describe('Lorena Substrate Tests', function () {
   let substrate
   let did, kZpair, pubKey
+  const diddocHash = 'AQwafuaFswefuhsfAFAgsw'
 
   before('Lorena Substrate Test Preparation', async () => {
     did = await zenroom.randomDID()
@@ -63,50 +57,57 @@ describe('Lorena Substrate Tests', function () {
   })
 
   it('Check DID registration', async () => {
-    // make sure we get the next block
-    await sleep(5000)
-
-    const registeredDid = JSON.parse(await filterEvents(substrate.api, 'DidRegistered'))
-    const identity = JSON.parse(await substrate.api.query.lorenaModule.identities(Utils.stringToHash(did)))
-    // Identity `owner` should be address Alice '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY'
-    expect(identity.owner).equal('5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY')
-    // expect(registeredDid[0]).equal('5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY')
+    const subs = await subscribe2RegisterEvents(substrate.api, 'DidRegistered')
+    const registeredDid = JSON.parse(subs)
+    const identity = await substrate.api.query.lorenaModule.identities(Utils.base64ToHex(did))
+    const identityJson = JSON.parse(identity)
+    // Identity `owner` should be address Alice
+    expect(identityJson.owner).to.equal(substrate.keypair.address)
+    expect(registeredDid[0]).to.equal(substrate.keypair.address)
     // Identity `key_index` should be 1
-    expect(identity.key_index).equal(1)
+    expect(identityJson.key_index).to.equal(1)
 
     const key = await substrate.getActualDidKey(did)
     // Key `key` should be the same as the one read from Substrate Events
-    expect(key.key).equal(registeredDid[2])
-    // TODO: Key `key` should de zenroom publicKey converted from  bytes to utf8
+    expect(key).to.equal(pubKey)
+    // Key `key` should de zenroom publicKey converted from bytes to utf8
+    expect(Utils.hexToBase64(registeredDid[2].split('x')[1])).to.equal(pubKey)
 
-    // Key `diddoc` should be "0x"
-    expect(key.diddoc).equal('0x')
+    const theIdentity = await substrate.getActualIdentity(did)
+    expect(theIdentity.valid_from.isEmpty).to.be.false
+    expect(theIdentity.valid_to.isEmpty).to.be.true
 
-    // Key `valid_from` should be an integer
-    expect(key.valid_from).to.be.an('number')
-    // Key `valid_to` should be 0
-    expect(key.valid_to).equal(0)
+    const doc = await substrate.getDidDocHash(did)
+    expect(doc).to.be.empty
   })
 
   it('Register a Did Document', async () => {
-    const diddocHash = 'AQwafuaFswefuhsfAFAgsw'
     await substrate.registerDidDocument(did, diddocHash)
-    const registeredDidDocument = await filterEvents(substrate.api, 'DidDocumentRegistered')
-    console.log(registeredDidDocument)
-    // expect(registeredDidDocument).to.eq(diddocHash)
+  })
+
+  it('Check registration event', async () => {
+    const subs = await subscribe2RegisterEvents(substrate.api, 'DidDocumentRegistered')
+    const registeredDidDocument = JSON.parse(subs)
+    expect(Utils.hexToBase64(registeredDidDocument[2].split('x')[1])).to.eq(diddocHash)
+  })
+
+  it('Check a Did Document', async () => {
+    const result = await substrate.getDidDocHash(did)
+    expect(result).to.be.eq(diddocHash)
   })
 
   it('GetKey from a DID', async () => {
-    substrate.getActualDidKey(did).then((key) => {
-      expect(key).equal(pubKey)
-    })
+    const result = await substrate.getActualDidKey(did)
+    expect(result).to.eq(pubKey)
   })
 
   it('Rotate Key', async () => {
-    const newKeyPair = await await zenroom.newKeyPair(did)
+    const newKeyPair = await zenroom.newKeyPair(did)
     const newPubKey = newKeyPair[did].keypair.public_key
     await substrate.rotateKey(did, newPubKey)
-    await filterEvents(substrate.api, 'KeyRotated')
+    const subs = await subscribe2RegisterEvents(substrate.api, 'KeyRotated')
+    const keyRotated = JSON.parse(subs)
+    expect(Utils.hexToBase64(keyRotated[2].split('x')[1])).to.eq(newPubKey)
     const key = await substrate.getActualDidKey(did)
     expect(key).equal(newPubKey)
   })

@@ -1,17 +1,11 @@
 'use strict'
 
 class Utils {
-  static hashCode (str) {
-    var result = []
-    while (str.length >= 2) {
-      result.push(parseInt(str.substring(0, 2), 16))
-      str = str.substring(2, str.length)
-    }
-
-    return result
+  static hexToBase64 (str) {
+    return Buffer.from(str, 'hex').toString('utf8')
   }
 
-  static stringToHash (str) {
+  static base64ToHex (str) {
     var hex; var result = ''
     for (var i = 0; i < str.length; i++) {
       hex = str.charCodeAt(i).toString(16)
@@ -74,20 +68,6 @@ class Utils {
     }
 
     return str
-  }
-
-  static sleep (ms) {
-    return new Promise(resolve => setTimeout(resolve, ms))
-  }
-
-  static makeUniqueString (length) {
-    var result = ''
-    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-    var charactersLength = characters.length
-    for (var i = 0; i < length; i++) {
-      result += characters.charAt(Math.floor(Math.random() * charactersLength))
-    }
-    return result
   }
 }
 

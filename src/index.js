@@ -93,19 +93,6 @@ module.exports = class SubstrateLib extends BlockchainInterface {
   }
 
   /**
-   * Returns the Key for a DID.
-   *
-   * @param {string} did DID
-   */
-  async getKey (did) {
-    return new Promise((resolve) => {
-      this.api.query.lorenaModule.identities(did.toString()).then((identity) => {
-        resolve(identity.zkey.toString())
-      })
-    })
-  }
-
-  /**
    * Sets the Keyring
    *
    * @param {string} seed Seed
@@ -118,34 +105,6 @@ module.exports = class SubstrateLib extends BlockchainInterface {
     this.keypair = keyring.addFromUri(uri)
     debug('Keyring added:' + this.keypair.address)
     return this.keypair.address
-  }
-
-  /**
-   * Transfer Tokens
-   * TODO: Not working.
-   *
-   * @param {string} to Address To
-   * @param {*} total Amount to send
-   */
-  async transfer (to, total) {
-    return new Promise(async (resolve, reject) => {
-      const ADDR = to
-      const AMOUNT = total * this.units
-
-      const balance = await this.api.query.balances.freeBalance(this.keypair.address)
-      const nonce = await this.api.query.system.accountNonce(this.keypair.address)
-
-      if (balance > AMOUNT) {
-        this.api.tx.balances
-          .transfer(ADDR, AMOUNT)
-          .signAndSend(this.keypair, { nonce }, async ({ events = [], status }) => {
-            if (status.isFinalized) {
-              debug('Blockchain Transfer complete')
-              resolve()
-            }
-          })
-      }
-    })
   }
 
   /**

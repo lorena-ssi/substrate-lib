@@ -85,14 +85,6 @@ module.exports = class SubstrateLib extends BlockchainInterface {
   }
 
   /**
-   * Balance for the address.
-   * TODO: Not working.
-   */
-  async balance () {
-    return await this.api.query.balances.freeBalance(this.keypair.address)
-  }
-
-  /**
    * Sets the Keyring
    *
    * @param {string} seed Seed

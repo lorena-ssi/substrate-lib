@@ -15,10 +15,8 @@ const subscribe2RegisterEvents = (api, eventMethod) => {
     api.query.system.events(events => {
       events.forEach(record => {
         const { event /*, phase */ } = record
-
         const types = event.typeDef
         if (event.section === 'lorenaModule' && event.method === eventMethod) {
-          // return resolve(event.data.toString())
           for (let i = 0; i < event.data.length; i++) {
             // All events have a a type 'AccountId'
             if (types[i].type === 'AccountId') {

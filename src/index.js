@@ -45,7 +45,7 @@ module.exports = class SubstrateLib extends BlockchainInterface {
         },
         Key: {
           key: 'Vec<u8>',
-          diddoc_hash: 'Hash',
+          diddoc: 'Vec<u8>',
           valid_from: 'u64',
           valid_to: 'u64'
         }
@@ -72,101 +72,61 @@ module.exports = class SubstrateLib extends BlockchainInterface {
   }
 
   /**
-   * Balance fot the address.
-   * TODO: Not working.
-   */
-  async balance () {
-    return await this.api.query.balances.freeBalance(this.keypair.address)
-  }
-
-  /**
-   * Returns the Key for a DID.
-   *
-   * @param {string} did DID
-   */
-  async getKey (did) {
-    return new Promise((resolve) => {
-      this.api.query.lorenaModule.identities(did.toString()).then((identity) => {
-        resolve(identity.zkey.toString())
-      })
-    })
-  }
-
-  /**
    * Sets the Keyring
    *
    * @param {string} seed Seed
-   * @returns {string} Address
+   * @param {boolean} isSeed Seed of URI
+   * @returns {string} address
    */
-  setKeyring (seed) {
+  setKeyring (seed, isSeed = false) {
     const keyring = new Keyring({ type: 'sr25519' })
-    this.keypair = keyring.addFromUri((seed === 'Alice') ? '//Alice' : seed)
+    const uri = ((isSeed) ? '' : '//') + seed
+    this.keypair = keyring.addFromUri(uri)
     debug('Keyring added:' + this.keypair.address)
     return this.keypair.address
   }
 
   /**
-   * Transfer Tokens
-   * TODO: Not working.
-   *
-   * @param {string} to Address To
-   * @param {*} total Amount to send
-   */
-  async transfer (to, total) {
-    return new Promise(async (resolve, reject) => {
-      const ADDR = to
-      const AMOUNT = total * this.units
-
-      const balance = await this.api.query.balances.freeBalance(this.keypair.address)
-      const nonce = await this.api.query.system.accountNonce(this.keypair.address)
-
-      if (balance > AMOUNT) {
-        this.api.tx.balances
-          .transfer(ADDR, AMOUNT)
-          .signAndSend(this.keypair, { nonce }, async ({ events = [], status }) => {
-            if (status.isFinalized) {
-              debug('Blockchain Transfer complete')
-              resolve()
-            }
-          })
-      }
-    })
-  }
-
-  /**
-   * Receives a 16 bytes DID string and extends it to 65 bytes Hash
+   * Registers Did in Substrate .
    *
    * @param {string} did DID
-   * @param {string} pubKey Public Key to register into the DID
+   * @param {string} pubKey Zenroom Public Key
+   *
+   * Example:
+   *    registerDid ('E348FEE8328', 'ZenroomValidPublicKey')
    */
   async registerDid (did, pubKey) {
-    debug('Register did : ' + did)
-    debug('Assign pubKey : ' + pubKey)
-    // Convert did string to hashed did
-    const hashedDID = Utils.hashCode(did)
-
+    // Convert did string to hex
+    const hexDID = Utils.base64ToHex(did)
     // Convert pubKey to vec[u8]
     const arr = Utils.toUTF8Array(pubKey)
     const zkey = new Vec(registry, 'u8', arr)
-    const transaction = await this.api.tx.lorenaModule.registerDid(hashedDID, zkey)
+
+    debug('Register did : ' + did)
+    debug('Assign pubKey : ' + pubKey)
+    debug('Register hexDID : ' + hexDID)
+    debug('Assign zkey : ' + zkey)
+
+    const transaction = await this.api.tx.lorenaModule.registerDid(hexDID, zkey)
     await transaction.signAndSend(this.keypair)
   }
 
+  async getActualIdentity (did) {
+    const hexDid = Utils.base64ToHex(did)
+    const identity = await this.api.query.lorenaModule.identities(hexDid)
+
+    return this.api.query.lorenaModule.identityKeys([hexDid, identity.key_index.toString()])
+  }
+
   /**
-   * Returns the actual Key.
+   * Returns the current Key.
    *
    * @param {string} did DID
    * @returns {string} The active key
    */
   async getActualDidKey (did) {
-    const hashedDID = Utils.hashCode(did)
-    const index = await this.api.query.lorenaModule.identityKeysIndex(hashedDID)
-    const result = await this.api.query.lorenaModule.identityKeys([hashedDID, index])
-
-    let key = result.key.toString()
-    key = key.split('x')[1]
-    key = Buffer.from(key, 'hex').toString('utf8')
-    return key
+    const result = await this.getActualIdentity(did)
+    return Utils.hexToBase64(result.key.toString().split('x')[1])
   }
 
   /**
@@ -176,9 +136,9 @@ module.exports = class SubstrateLib extends BlockchainInterface {
    * @param {string} diddocHash Did document Hash
    */
   async registerDidDocument (did, diddocHash) {
-    const hashedDID = Utils.hashCode(did)
-    const docHash = Utils.hashCode(diddocHash)
-    const transaction = await this.api.tx.lorenaModule.registerDidDocument(hashedDID, docHash)
+    const hexDid = Utils.base64ToHex(did)
+    const docHash = Utils.toUTF8Array(diddocHash)
+    const transaction = await this.api.tx.lorenaModule.registerDidDocument(hexDid, docHash)
     await transaction.signAndSend(this.keypair)
   }
 
@@ -189,26 +149,24 @@ module.exports = class SubstrateLib extends BlockchainInterface {
    * @returns {string} the Hash
    */
   async getDidDocHash (did) {
-    const hashedDID = Utils.hashCode(did)
-    const identity = await this.api.query.lorenaModule.identities(hashedDID)
-    const index = await this.api.query.lorenaModule.identityKeysIndex(identity.owner)
-    const key = await this.api.query.lorenaModule.identityKeys([identity.owner, index])
-    return key.diddoc_hash.toString()
+    const identity = await this.getActualIdentity(did)
+    const result = Utils.hexToBase64(identity.diddoc)
+    return result
   }
 
   /**
-   * Rotate Key : changes the actual key for a DID
+   * Rotate Key : changes the current key for a DID
    *
    * @param {string} did DID
    * @param {string} pubKey Public Key to register into the DID
    */
   async rotateKey (did, pubKey) {
-    // Convert did string to hashed did
-    const hashedDID = Utils.hashCode(did)
+    // Convert did string to hex
+    const hexDID = Utils.base64ToHex(did)
     // Convert pubKey to vec[u8]
     const keyArray = Utils.toUTF8Array(pubKey)
     // Call LorenaModule RotateKey function
-    const transaction = await this.api.tx.lorenaModule.rotateKey(hashedDID, keyArray)
+    const transaction = await this.api.tx.lorenaModule.rotateKey(hexDID, keyArray)
     await transaction.signAndSend(this.keypair)
   }
 }

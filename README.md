@@ -18,6 +18,6 @@ TODO
 ```javascript
 const Substrate = require('@lorena-ssi/substrate-lib')
 // Creating class Substrate with parameter `url`
-const substrate = new new LorenaSubstrate('wss://your.own.substrate.com/')
+const substrate = new LorenaSubstrate('wss://your.own.substrate.com/')
 }
 ```

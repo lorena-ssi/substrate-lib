@@ -1,11 +1,15 @@
 'use strict'
 
 class Utils {
-  static hashCode (str) {
-    var result = []
-    while (str.length >= 2) {
-      result.push(parseInt(str.substring(0, 2), 16))
-      str = str.substring(2, str.length)
+  static hexToBase64 (str) {
+    return Buffer.from(str, 'hex').toString('utf8')
+  }
+
+  static base64ToHex (str) {
+    var hex; var result = ''
+    for (var i = 0; i < str.length; i++) {
+      hex = str.charCodeAt(i).toString(16)
+      result = result + hex.toString()
     }
 
     return result
@@ -37,47 +41,6 @@ class Utils {
       }
     }
     return utf8
-  }
-
-  static fromUTF8Array (data) { // array of bytes
-    var str = ''
-    var i
-
-    for (i = 0; i < data.length; i++) {
-      var value = data[i]
-
-      if (value < 0x80) {
-        str += String.fromCharCode(value)
-      } else if (value > 0xBF && value < 0xE0) {
-        str += String.fromCharCode((value & 0x1F) << 6 | data[i + 1] & 0x3F)
-        i += 1
-      } else if (value > 0xDF && value < 0xF0) {
-        str += String.fromCharCode((value & 0x0F) << 12 | (data[i + 1] & 0x3F) << 6 | data[i + 2] & 0x3F)
-        i += 2
-      } else {
-        // surrogate pair
-        var charCode = ((value & 0x07) << 18 | (data[i + 1] & 0x3F) << 12 | (data[i + 2] & 0x3F) << 6 | data[i + 3] & 0x3F) - 0x010000
-
-        str += String.fromCharCode(charCode >> 10 | 0xD800, charCode & 0x03FF | 0xDC00)
-        i += 3
-      }
-    }
-
-    return str
-  }
-
-  static sleep (ms) {
-    return new Promise(resolve => setTimeout(resolve, ms))
-  }
-
-  static makeUniqueString (length) {
-    var result = ''
-    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-    var charactersLength = characters.length
-    for (var i = 0; i < length; i++) {
-      result += characters.charAt(Math.floor(Math.random() * charactersLength))
-    }
-    return result
   }
 }
 

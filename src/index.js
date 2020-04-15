@@ -111,7 +111,7 @@ module.exports = class SubstrateLib extends BlockchainInterface {
     await transaction.signAndSend(this.keypair)
   }
 
-  async getActualIdentity (did) {
+  async getActualKey (did) {
     const hexDid = Utils.base64ToHex(did)
     const identity = await this.api.query.lorenaModule.identities(hexDid)
 
@@ -125,7 +125,7 @@ module.exports = class SubstrateLib extends BlockchainInterface {
    * @returns {string} The active key
    */
   async getActualDidKey (did) {
-    const result = await this.getActualIdentity(did)
+    const result = await this.getActualKey(did)
     return Utils.hexToBase64(result.key.toString().split('x')[1])
   }
 
@@ -149,7 +149,7 @@ module.exports = class SubstrateLib extends BlockchainInterface {
    * @returns {string} the Hash
    */
   async getDidDocHash (did) {
-    const identity = await this.getActualIdentity(did)
+    const identity = await this.getActualKey(did)
     const result = Utils.hexToBase64(identity.diddoc)
     return result
   }

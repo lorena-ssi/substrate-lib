@@ -33,6 +33,7 @@ const subscribe2RegisterEvents = (api, eventMethod) => {
 describe('Lorena Substrate Tests', function () {
   let substrate
   let did, kZpair, pubKey
+  let keyRegister
   const diddocHash = 'AQwafuaFswefuhsfAFAgsw'
 
   before('Lorena Substrate Test Preparation', async () => {
@@ -59,24 +60,27 @@ describe('Lorena Substrate Tests', function () {
     const registeredDid = JSON.parse(subs)
     const identity = await substrate.api.query.lorenaModule.identities(Utils.base64ToHex(did))
     const identityJson = JSON.parse(identity)
+
+    // Check of object `Identity` was created as expected
     // Identity `owner` should be address Alice
     expect(identityJson.owner).to.equal(substrate.keypair.address)
+    // Identity `owner` from RegisteredEvent should be address Alice
     expect(registeredDid[0]).to.equal(substrate.keypair.address)
     // Identity `key_index` should be 1
     expect(identityJson.key_index).to.equal(1)
 
-    const key = await substrate.getActualDidKey(did)
+    // Check if object `Key` was created as expected
+    keyRegister = await substrate.getActualKey(did)
     // Key `key` should be the same as the one read from Substrate Events
-    expect(key).to.equal(pubKey)
+    expect(keyRegister.key.toString()).to.equal(registeredDid[2])
     // Key `key` should de zenroom publicKey converted from bytes to utf8
-    expect(Utils.hexToBase64(registeredDid[2].split('x')[1])).to.equal(pubKey)
-
-    const theIdentity = await substrate.getActualIdentity(did)
-    expect(theIdentity.valid_from.isEmpty).to.be.false
-    expect(theIdentity.valid_to.isEmpty).to.be.true
-
-    const doc = await substrate.getDidDocHash(did)
-    expect(doc).to.be.empty
+    expect(Utils.hexToBase64(keyRegister.key.toString().split('x')[1])).to.equal(pubKey)
+    // Key `diddoc` should be Empty
+    expect(keyRegister.diddoc.isEmpty).to.be.true
+    // Key `valid_from` should be a valid timestamp (less than a minute ago)
+    expect(keyRegister.valid_from.isEmpty).to.be.false
+    // Key `valid_to` should be 0 representing an empty value
+    expect(keyRegister.valid_to.isEmpty).to.be.true
   })
 
   it('Register a Did Document', async () => {
@@ -86,6 +90,7 @@ describe('Lorena Substrate Tests', function () {
   it('Check registration event', async () => {
     const subs = await subscribe2RegisterEvents(substrate.api, 'DidDocumentRegistered')
     const registeredDidDocument = JSON.parse(subs)
+    // Diddoc hash should change from empty to the matrix `mediaId` url represented by a `Vec<u8>`
     expect(Utils.hexToBase64(registeredDidDocument[2].split('x')[1])).to.eq(diddocHash)
   })
 

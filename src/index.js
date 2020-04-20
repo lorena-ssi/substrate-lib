@@ -104,8 +104,6 @@ module.exports = class SubstrateLib extends BlockchainInterface {
 
     debug('Register did : ' + did)
     debug('Assign pubKey : ' + pubKey)
-    debug('Register hexDID : ' + hexDID)
-    debug('Assign zkey : ' + zkey)
 
     const transaction = await this.api.tx.lorenaModule.registerDid(hexDID, zkey)
     await transaction.signAndSend(this.keypair)

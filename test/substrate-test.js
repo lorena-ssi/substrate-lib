@@ -54,15 +54,25 @@ describe('Lorena Substrate Tests', function () {
     substrate = new LorenaSubstrate(process.env.SERVER_SUBSTRATE)
   })
 
-  it('Open a Seed', async () => {
+  it('should connect to Substrate', async () => {
     // SetKeyring and Connect are being called here because mocha Before function is not waiting for Keyring WASM library load
     await substrate.connect()
-    const addr = substrate.setKeyring('subject grief save master kangaroo core ocean brick artwork admit main angle')
-    expect(addr).equal('5CtW3TkcQq4z4fEmRBsu2GQdBSE6ve38ESeysaiQNE2GUWaE')
+  })
+
+  it('should use a SURI as a key', async () => {
+    const alice = substrate.setKeyring('//Alice')
+    expect(alice).eq('5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY')
+  })
+
+  xit('should send some dineros from Alice to Cooter', async () => {
+  })
+
+  xit('should set a real key for Cooter', async () => {
+    const addr = substrate.setKeyring('vendor drip girl despair trash muscle violin december green dragon ordinary crop')
+    expect(addr).equal('5H67ieFmTDNKspGpBKDJUrYQvGKDU9zvRR59azqL1cSo9rno')
   })
 
   it('Register a DID', async () => {
-    substrate.setKeyring('Alice')
     await substrate.registerDid(did, pubKey)
   })
 

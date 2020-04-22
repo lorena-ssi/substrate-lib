@@ -18,9 +18,9 @@ module.exports = class SubstrateLib extends BlockchainInterface {
   /**
    * Constructor
    *
-   * @param {string} server Web Sockets Provider
+   * @param {string} server Web Sockets Provider, e.g. 'ws://127.0.0.1:9944/'
    */
-  constructor (server = 'ws://127.0.0.1:9944/') {
+  constructor (server) {
     super()
     this.providerWS = server
     this.api = false
@@ -74,14 +74,12 @@ module.exports = class SubstrateLib extends BlockchainInterface {
   /**
    * Sets the Keyring
    *
-   * @param {string} seed Seed
-   * @param {boolean} isSeed Seed of URI
+   * @param {string} seed Seed (12, 15, 24-digit mnemonic, or //Alice)
    * @returns {string} address
    */
-  setKeyring (seed, isSeed = false) {
+  setKeyring (seed) {
     const keyring = new Keyring({ type: 'sr25519' })
-    const uri = ((isSeed) ? '' : '//') + seed
-    this.keypair = keyring.addFromUri(uri)
+    this.keypair = keyring.addFromUri(seed)
     debug('Keyring added:' + this.keypair.address)
     return this.keypair.address
   }

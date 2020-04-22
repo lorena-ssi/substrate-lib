@@ -30,6 +30,17 @@ const subscribe2RegisterEvents = (api, eventMethod) => {
   })
 }
 
+describe('Conversions', () => {
+  it('should have good format conversion', () => {
+    const base64 = 'Wldvd1pqVmZWbEoxYVdaWFdGOW5ja05I'
+    const hex = '576c647664317071566d5a5762456f7859566461574664474f57356a61303549'
+    const hexed = Utils.base64ToHex(base64)
+    const based = Utils.hexToBase64(hex)
+    expect(hexed).to.eq(hex)
+    expect(based).to.eq(base64)
+  })
+})
+
 describe('Lorena Substrate Tests', function () {
   let substrate
   let did, kZpair, pubKey

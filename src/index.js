@@ -30,6 +30,8 @@ module.exports = class SubstrateLib extends BlockchainInterface {
 
   /**
    * Connect with the Blockchain.
+   *
+   * @returns {boolean} result
    */
   async connect () {
     debug('connecting to ' + this.providerWS)
